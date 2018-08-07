@@ -25,7 +25,7 @@ namespace TMS.Framework.ExcelUtils
         /// <param name="sheet"></param>
         /// <param name="startRow">起始行数</param>
         /// <returns>文件相对路径</returns>
-        public static string ToExcelFile<T>(this IList<T> source, IWorkbook book = null, ISheet sheet = null, int startRow = 0) where T : class, new()
+        public static string ToExcelFile<T>(this IList<T> source,string savePath, IWorkbook book = null, ISheet sheet = null, int startRow = 0) where T : class, new()
         {
             var isxlsx = source.Count > 60000;//是否使用excel2007版本
             #region 初始化 book 和 sheet
@@ -46,10 +46,10 @@ namespace TMS.Framework.ExcelUtils
             }
             #endregion
 
+     
             source.ToSheetContent(book, sheet, startRow);
 
             #region 保存excel文件到服务器上
-            string savePath = @"C:\e-invoice\"; 
             if (!Directory.Exists(savePath))
             {
                 Directory.CreateDirectory(savePath);//创建新路径
@@ -146,6 +146,16 @@ namespace TMS.Framework.ExcelUtils
                 cell.SetCellValue(column.Title);
             }
             #endregion
+
+            //设置文本格式
+            //4.创建CellStyle与DataFormat并加载格式样式
+            IDataFormat dataformat = workbook.CreateDataFormat();
+
+            //【Tips】
+            // 1.使用@ 或 text 都可以
+            ICellStyle style0 = workbook.CreateCellStyle();
+            style0.DataFormat = dataformat.GetFormat("@");
+
             #region 填充数据
             var rowIndex = startRow + 1;
             foreach (var item in source)
@@ -160,10 +170,7 @@ namespace TMS.Framework.ExcelUtils
 
                     var value = property.GetValue(item, null);
                     var cell = row.CreateCell(column.Index);
-                    if (fCellStyle != null)
-                    {
-                        cell.CellStyle = fCellStyle;
-                    }
+                    cell.CellStyle = style0;
                     if (value is ValueType)
                     {
                         if (value == null)

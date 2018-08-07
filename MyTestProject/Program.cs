@@ -17,35 +17,58 @@ namespace MyTestProject
         static void Main(string[] args)
         {
             //GeographyFenceAlgorithm.testAlgorithm();
-            var rootPath = @"C:\e-invoice\";
-            DirectoryInfo root = new DirectoryInfo(rootPath);
-            var exportList=new List<EInvoice>();
-            foreach (FileInfo f in root.GetFiles())
+            //var rootPath = @"D:\发票\黎波 (1)\13508342022\";
+            while (true)
             {
-                if (f.Extension==".pdf")
+
+                var rootPath = "";
+                Console.WriteLine("请输入处理发票路径：");
+                while (true)
                 {
-                    var item = ExtractTextFromPDFPage(rootPath, f.Name, 1);
-                    exportList.Add(item);
+                    rootPath = Console.ReadLine();
+                    if (string.IsNullOrEmpty(rootPath) == false)
+                    {
+                        rootPath += "\\";
+                        break;
+                    }
+                    Console.WriteLine("输入错误，请重新输入：");
                 }
-             
+                Console.WriteLine("路径为：" + rootPath);
+                DirectoryInfo root = new DirectoryInfo(rootPath);
+                var exportList = new List<EInvoice>();
+                foreach (FileInfo f in root.GetFiles())
+                {
+                    if (f.Extension == ".pdf")
+                    {
+                        var item = ExtractTextFromPDFPage(rootPath, f.Name, 1);
+                        if (item == null)
+                        {
+                            continue;
+                        }
+                        exportList.Add(item);
+                    }
+
+                }
+
+                TMS.Framework.ExcelUtils.Export.ToExcelFile(exportList, rootPath);
+
             }
-
-            TMS.Framework.ExcelUtils.Export.ToExcelFile(exportList);
-
         }
 
         public static EInvoice ExtractTextFromPDFPage(string pdfFilePath,string filename, int pageNumber)
         {
             PdfReader reader = new PdfReader(pdfFilePath+filename);
-            string text = PdfTextExtractor.GetTextFromPage(reader, pageNumber);
+            //ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
+            string text = PdfTextExtractor.GetTextFromPage(reader, pageNumber).Replace("*经茥租赁 *", "*经茥租赁*")
+                .Replace("不征礎", "不征税").Replace("輚行费", "通行费").Replace("洝", "渝").Replace("通行费渝 ", "通行费渝");
+
             try { reader.Close(); }
             catch { }
             //System.IO.File.WriteAllText(pdfFilePath+"1.txt",text);
             var invoiceNo = text.Substring(text.IndexOf("发票号码") + 6, text.IndexOf("开票日期") - text.IndexOf("发票号码") - 7);
             var newfileName = invoiceNo + ".pdf";
             var plateNumber = text.Substring(text.IndexOf("通行费") + 3, 7);
-            var prePriceIndex = text.IndexOf(@"（小写）
-￥") + 6;
+            var prePriceIndex = text.LastIndexOf(@"￥") + 1;
             var nextPriceIndex = text.LastIndexOf(@"名　　　　称:");
             Console.WriteLine(prePriceIndex);
             Console.WriteLine(nextPriceIndex);
@@ -75,7 +98,7 @@ namespace MyTestProject
             {
                 invoicePrice = decimal.Parse(detailArr[3]);
                 taxRatio = detailArr[4];
-                taxPrice = decimal.Parse(detailArr[5]);
+                taxPrice = detailArr[4].Contains("＊＊＊")?0M:decimal.Parse(detailArr[5]);
             }
             Console.WriteLine("invoicePrice:" + invoicePrice);
             Console.WriteLine("taxRatio:"+taxRatio);
@@ -85,8 +108,19 @@ namespace MyTestProject
          
             if (filename!=newfileName)
             {
-                Computer MyComputer = new Computer();
-                MyComputer.FileSystem.RenameFile(pdfFilePath + filename, newfileName);
+                if (System.IO.File.Exists(pdfFilePath + newfileName))
+                {
+                    newfileName=newfileName.Replace(".pdf","（重复的）.pdf");
+                }
+                try
+                {
+                    Computer MyComputer = new Computer();
+                    MyComputer.FileSystem.RenameFile(pdfFilePath + filename, newfileName);
+                }
+                catch (System.IO.IOException e)
+                {
+                    return null;
+                }
             }
 
 
