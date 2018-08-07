@@ -18,41 +18,39 @@ namespace MyTestProject
         {
             //GeographyFenceAlgorithm.testAlgorithm();
             //var rootPath = @"D:\发票\黎波 (1)\13508342022\";
+
+            var rootPath = "";
+            Console.WriteLine("请输入处理发票路径：");
             while (true)
             {
-
-                var rootPath = "";
-                Console.WriteLine("请输入处理发票路径：");
-                while (true)
+                rootPath = Console.ReadLine();
+                if (string.IsNullOrEmpty(rootPath) == false)
                 {
-                    rootPath = Console.ReadLine();
-                    if (string.IsNullOrEmpty(rootPath) == false)
-                    {
-                        rootPath += "\\";
-                        break;
-                    }
-                    Console.WriteLine("输入错误，请重新输入：");
+                    rootPath += "\\";
+                    break;
                 }
-                Console.WriteLine("路径为：" + rootPath);
-                DirectoryInfo root = new DirectoryInfo(rootPath);
-                var exportList = new List<EInvoice>();
-                foreach (FileInfo f in root.GetFiles())
+                Console.WriteLine("输入错误，请重新输入：");
+            }
+            Console.WriteLine("路径为：" + rootPath);
+            DirectoryInfo root = new DirectoryInfo(rootPath);
+            var exportList = new List<EInvoice>();
+            foreach (FileInfo f in root.GetFiles())
+            {
+                if (f.Extension == ".pdf")
                 {
-                    if (f.Extension == ".pdf")
+                    var item = ExtractTextFromPDFPage(rootPath, f.Name, 1);
+                    if (item == null)
                     {
-                        var item = ExtractTextFromPDFPage(rootPath, f.Name, 1);
-                        if (item == null)
-                        {
-                            continue;
-                        }
-                        exportList.Add(item);
+                        continue;
                     }
-
+                    exportList.Add(item);
                 }
-
-                TMS.Framework.ExcelUtils.Export.ToExcelFile(exportList, rootPath);
 
             }
+
+            TMS.Framework.ExcelUtils.Export.ToExcelFile(exportList, rootPath);
+
+
         }
 
         public static EInvoice ExtractTextFromPDFPage(string pdfFilePath,string filename, int pageNumber)
