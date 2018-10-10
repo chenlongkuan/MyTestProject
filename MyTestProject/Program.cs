@@ -96,7 +96,11 @@ namespace MyTestProject
             {
                 invoicePrice = decimal.Parse(detailArr[3]);
                 taxRatio = detailArr[4];
-                taxPrice = detailArr[4].Contains("＊＊＊")?0M:decimal.Parse(detailArr[5]);
+                taxPrice = detailArr[4].Contains("＊＊＊")
+                    ? 0M
+                    : decimal.Parse(detailArr[5].Contains("\n")
+                        ? detailArr[5].Substring(0, detailArr[5].IndexOf("\n"))
+                        : detailArr[5]);
             }
             Console.WriteLine("invoicePrice:" + invoicePrice);
             Console.WriteLine("taxRatio:"+taxRatio);
