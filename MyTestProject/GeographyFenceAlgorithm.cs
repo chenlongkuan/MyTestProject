@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyTest.Core;
+using System;
 
 namespace MyTestProject
 {
@@ -76,10 +77,4 @@ namespace MyTestProject
         }
     }
 
-    public class GpsPoint
-    {
-        public decimal Lng { get; set; }
-
-        public decimal Lat { get; set; }
-    }
 }

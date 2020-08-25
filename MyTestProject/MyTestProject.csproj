@@ -78,5 +78,11 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Test.Core\MyTest.Core.csproj">
+      <Project>{73a78388-52cd-4b87-9884-eda6ef1c994b}</Project>
+      <Name>MyTest.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
